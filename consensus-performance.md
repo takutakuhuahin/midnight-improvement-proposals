@@ -7,11 +7,18 @@
 
 ## **Abstract**
 
-Achieving a target of 1,000+ transactions per second (TPS) is physically constrained by the current sequential consensus architecture. The sequential verification bottleneck is compounded by the fact that the current network stack cannot disseminate blocks greater than 2MB without significant forking. With zk-SNARK verification at 6 ms per proof on the BLS12-381 curve, processing 1,000 transactions requires 6,000 ms of sequential CPU time. The Substrate runtime allocates only 1,500 ms for user transaction verification within the 6-second block time, sufficient for approximately 250 proofs per block, which is 4x short of the 1,000 TPS target. Some form of parallelization or DAG-based consensus is necessary to decouple verification from the critical path and achieve high throughput.
+Achieving a target of 1,000+ transactions per second (TPS) is physically constrained by the current sequential consensus architecture.
+The sequential verification bottleneck is compounded by the fact that the current network stack cannot disseminate blocks greater than 2MB without significant forking.
+With zk-SNARK verification at 6 ms per proof on the BLS12-381 curve, processing 1,000 transactions requires 6,000 ms of sequential CPU time.
+The Substrate runtime allocates only 1,500 ms for user transaction verification within the 6-second block time, sufficient for approximately 250 proofs per block, which is 4x short of the 1,000 TPS target.
+Some form of parallelization or DAG-based consensus is necessary to decouple verification from the critical path and achieve high throughput.
 
 ## **Problem Throughput Bottleneck**
 
-Despite cryptographic optimizations that reduced transaction verification time to 6 ms per proof, the sequential consensus mechanism (Aura for block production, GRANDPA for finality) places all proof verification on a single block leader. The runtime reserves 1.5 seconds for normal dispatch, the class that includes user transactions and their proof verification. Achieving 1,000+ TPS is physically impossible under this model: verifying 1,000 proofs requires 6,000 ms of sequential CPU execution, which is 4x the total compute budget. The bottleneck is architectural, as verification cannot be parallelized across the validator set under the current single-leader block production model.
+Despite cryptographic optimizations that reduced transaction verification time to 6 ms per proof, the sequential consensus mechanism (Aura for block production, GRANDPA for finality) places all proof verification on a single block leader.
+The runtime reserves 1.5 seconds for normal dispatch, the class that includes user transactions and their proof verification.
+Achieving 1,000+ TPS is physically impossible under this model: verifying 1,000 proofs requires 6,000 ms of sequential CPU execution, which is 4x the total compute budget.
+The bottleneck is architectural, as verification cannot be parallelized across the validator set under the current single-leader block production model.
 
 **UC1: High-Throughput Concurrent Smart Contract Execution**
 
@@ -32,7 +39,8 @@ Despite cryptographic optimizations that reduced transaction verification time t
 
 ## **Requirements**
 
-* **Performance:** The consensus engine must sustain a minimum throughput of 1,000 TPS. Block times (soft finality) must remain under 2 seconds.  
+* **Performance:** The consensus engine must sustain a minimum throughput of 1,000 TPS.
+  Block times (soft finality) must remain under 2 seconds.  
 * **Compatibility:** The design must natively integrate with Midnight's dual-token tokenomics, facilitating DUST fee payments and NIGHT validator rewards.
 
 ## **Success Metrics**
@@ -61,5 +69,7 @@ Despite cryptographic optimizations that reduced transaction verification time t
 Using the current 6 ms verification time for proofs:
 
 * 100 transactions \= 600 ms of CPU time.  
-* 1,000 transactions \= 6,000 ms (6 seconds) of CPU time. This is greater than the total block time.  
-  Under a sequential block production model, block times must be strictly greater than 6 seconds to handle 1,000 TPS. Parallelization through a decoupled mempool (Narwhal) distributes this 6,000 ms workload across *n* validators concurrently.
+* 1,000 transactions \= 6,000 ms (6 seconds) of CPU time.
+  This is greater than the total block time.  
+  Under a sequential block production model, block times must be strictly greater than 6 seconds to handle 1,000 TPS.
+  Parallelization through a decoupled mempool (Narwhal) distributes this 6,000 ms workload across *n* validators concurrently.
